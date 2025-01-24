@@ -28,15 +28,13 @@ const findSuchergebnisse = async (req, res) => {
     console.log("Suchanfrage erhalten:", query);
 
     try {
-        // Führe die Datenbankabfrage aus
         const found = await sightModel.findSuchergebnisse(query);
 
-        // Prüfen, ob Ergebnisse zurückgegeben wurden
         if (found.length > 0) {
-            res.status(200).json(found); // Rückgabe der gefundenen Ergebnisse als JSON
+            res.status(200).json(found);
         } else {
             // Keine Ergebnisse gefunden
-            res.status(404).json({ message: "Keine Ergebnisse gefunden" }); // 404 oder 200 mit leerer Liste
+            res.status(404).json({ message: "Keine Ergebnisse gefunden" });
         }
 
     } catch (err) {
@@ -50,15 +48,14 @@ const findFilterergebnisse = async (req, res) => {
     console.log("Suchanfrage erhalten:", query);
 
     try {
-        // Führe die Datenbankabfrage aus
+
         const found = await sightModel.findFilterergebnisse(req.body);
 
-        // Prüfen, ob Ergebnisse zurückgegeben wurden
         if (found.length > 0) {
-            res.status(200).json(found); // Rückgabe der gefundenen Ergebnisse als JSON
+            res.status(200).json(found);
         } else {
             // Keine Ergebnisse gefunden
-            res.status(404).json({ message: "Keine Ergebnisse gefunden" }); // 404 oder 200 mit leerer Liste
+            res.status(404).json({ message: "Keine Ergebnisse gefunden" });
         }
 
     } catch (err) {
@@ -70,6 +67,10 @@ const findFilterergebnisse = async (req, res) => {
 const addSight = async (req, res) => {
     const query  = req.body;
     const { name, price, selectedCategory, picture, description } = req.body
+    if (isNaN(price) || price < 0 || price > 100) {
+        return res.status(400).json({ value: "The price is not a valid number." });
+    }
+
     console.log(`Name: ${name}`)
     inBarca = await validateSpotLocation(name)
     validUrl = await isValidURL(picture)
@@ -84,6 +85,11 @@ const addSight = async (req, res) => {
             if (error.code === '23505') {
                 res.status(200).json({
                     value: 'A sight with this name already exists.',
+                });
+            }
+            if (error.code === '23503') {
+                res.status(400).json({
+                    value: 'Category not found',
                 });
             }
         }
@@ -101,6 +107,9 @@ const addSight = async (req, res) => {
 const updateSight = async (req, res) => {
     const query  = req.body;
     const { name, price, category, picture, description, sight } = req.body
+    if (isNaN(price) || price < 0 || price > 100) {
+        return res.status(400).json({ value: "The price is not a valid number." });
+    }
     console.log(`Name: ${name}`)
     inBarca = await validateSpotLocation(name)
     validUrl = await isValidURL(picture)
@@ -115,6 +124,12 @@ const updateSight = async (req, res) => {
             if (error.code === '23505') {
                 res.status(200).json({
                     value: 'A sight with this name already exists.',
+                });
+            }
+
+            if (error.code === '23503') {
+                res.status(400).json({
+                    value: 'Category not found',
                 });
             }
         }
@@ -155,6 +170,9 @@ async function validateSpotLocation(name) {
 
 async function isValidURL(urlString) {
     try {
+        if (!urlString.endsWith('.png') && !urlString.endsWith('.jpg')){
+            return false;
+        }
         const url = new URL(urlString);
         const response = await fetch(url);
         if (response.ok) {

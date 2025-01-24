@@ -1,5 +1,4 @@
 const categoryModel = require('../models/categoryModel');
-const sightModel = require("../models/sightModel");
 
 const getAllCategories = async (req, res) => {
     try {
@@ -21,6 +20,10 @@ const getCategoriesDropDown = async(req, res) => {
 
 const addCategory = async (req, res) => {
     const query = req.body
+    const categoryValid = /^[a-zA-Z\s]+$/.test(query.category);
+    if(!categoryValid){
+        return res.status(400).json({ value: "Category not valid" });
+    }
     try {
         const found = await categoryModel.insertCategory(query);
         res.status(200).json({ value: "Entry was successful." });
@@ -36,6 +39,10 @@ const addCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
     const query = req.body
+    const categoryValid = /^[a-zA-Z\s]+$/.test(query.category);
+    if(!categoryValid){
+        return res.status(400).json({ value: "Category not valid" });
+    }
     try {
         const found = await categoryModel.updateCategory(query);
         res.status(200).json({ value: "Update was successful." });
